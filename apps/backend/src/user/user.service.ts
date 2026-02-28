@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { EntityManager, wrap } from '@mikro-orm/core';
 import { SECRET } from '../config';
-import { CreateUserDto, LoginUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto, LoginUserDto, UpdateUserDto, RosterEntryDto } from './dto';
 import { User } from './user.entity';
 import { IUserRO } from './user.interface';
 import { UserRepository } from './user.repository';
@@ -15,6 +15,33 @@ export class UserService {
 
   async findAll(): Promise<User[]> {
     return this.userRepository.findAll();
+  }
+
+  async getRoster(): Promise<RosterEntryDto[]> {
+    const qb = this.userRepository.createQueryBuilder('u');
+    qb.select([
+      'u.username',
+      'u.id',
+      'COUNT(DISTINCT a.id) as articlesAuthoredCount',
+      'COALESCE(COUNT(f.id), 0) as favoritesReceivedCount',
+          ])
+    .leftJoin('u.articles', 'a')
+    .leftJoin('u.favorites', 'f')
+    .groupBy(['u.id', 'u.username'])
+.orderBy({
+  'COALESCE(COUNT(f.id), 0)': 'DESC',
+  'COUNT(DISTINCT a.id)': 'DESC',
+  'u.username': 'ASC',
+    });
+
+    const results = await qb.getResultList();
+    return results.map((result: any) => ({
+      username: result.username,
+      profileLink: `/profile/${result.username}`,
+      articlesAuthoredCount: Number(result.articlesAuthoredCount) || 0,
+      favoritesReceivedCount: Number(result.favoritesReceivedCount) || 0,
+      firstArticleDate: null,
+          }));
   }
 
   async findOne(loginUserDto: LoginUserDto): Promise<User> {

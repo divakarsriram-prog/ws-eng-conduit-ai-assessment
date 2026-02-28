@@ -5,7 +5,8 @@ import { User } from './user.decorator';
 import { IUserRO } from './user.interface';
 import { UserService } from './user.service';
 
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { RosterEntryDto } from './dto/roster-entry.dto';
 
 @ApiBearerAuth()
 @ApiTags('user')
@@ -16,6 +17,12 @@ export class UserController {
   @Get('user')
   async findMe(@User('email') email: string): Promise<IUserRO> {
     return this.userService.findByEmail(email);
+  }
+
+  @Get('users/roster')
+  @ApiOperation({ summary: 'Get roster statistics for all users' })
+  async getRoster(): Promise<RosterEntryDto[]> {
+    return this.userService.getRoster();
   }
 
   @Put('user')
