@@ -1,1 +1,26 @@
-<p>TODO</p>
+<h1>Conduit Roster</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>User</th>
+      <th>Articles</th>
+      <th>Favorites Received</th>
+      <th>First Article Date</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let row of roster">
+      <td>
+        <a [routerLink]="['/profile', row.username]">{{ row.username }}</a>
+      </td>
+      <td>{{ row.articlesAuthoredCount }}</td>
+      <td>{{ row.favoritesReceivedCount }}</td>
+      <td>{{ row.firstArticleDate ? (row.firstArticleDate | date: 'mediumDate') : '' }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p *ngIf="!loading && roster.length === 0">No users found.</p>
+<p *ngIf="error" style="color: red">{{ error }}</p>
